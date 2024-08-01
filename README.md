@@ -1,7 +1,7 @@
 # replaceXMLdata
 Replicate XML files from BEAUti with new sequence data and dates while retaining parameters to run with [BEAST2](https://www.beast2.org).
 
-First create an XML file using BEAUti with models and prior parameters to be. This will be the base XML file. Run this script to make a new XML file with new data (sequences and dates) with the same. This reduces the need to create new XML files in BEAUti for each dataset, which can be tedious!
+First create an XML file using BEAUti with models and prior parameters to be replicated. This will be the base XML file. Run this script to make a new XML file with new data (sequences and dates) with the same. This reduces the need to create new XML files in BEAUti for each dataset, which can be tedious!
 
 The script can be run with Rscript using the following command:
 
