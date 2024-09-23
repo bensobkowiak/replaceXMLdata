@@ -17,7 +17,7 @@ Rscript replaceData_XML.R -x base.xml -f newSequence.fasta -d Dates.txt -p old_p
 | -p, --old_prefix | The prefix for output files that can be replaced in the base XML, this is usually the name of the alignment file used to build the base XML |
 | -n, --new_prefix  | A new prefix to name all the output files |
 | -o, --output  | Name of the new XML file |
-| -i, --invariant  | Logical, if TRUE, this will add a line under the sequence data in the XML file to estimate the proportion of invariant sites if you are using variant only sequence data, as detailed [here](https://groups.google.com/g/beast-users/c/DuhdMp9JNcA). This script is configured for the Mtb H37Rv reference strain, but it can be adapted for any taxa |
+| -i, --invariant  | Logical, if TRUE, this will add a line under the sequence data in the XML file to estimate the proportion of invariant sites if you are using variant only sequence data, as detailed [here](https://groups.google.com/g/beast-users/c/DuhdMp9JNcA). This script is configured for the Mtb H37Rv reference strain, but it can be adapted for any taxa. The original XML supplied withe -x option must not have this line present. |
 
 
 _Note: this script is created for BEAST2 and may not be compatible with BEAST v.1. This has also only been tested with one data partition._
