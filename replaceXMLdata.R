@@ -4,7 +4,7 @@ library(optparse)
 
 # Function to parse FASTA file
 parse_fasta <- function(fasta_file) {
-  sequences <- read.fasta(fasta_file,forceDNAtolower = F)
+  sequences <- seqinr::read.fasta(fasta_file,forceDNAtolower = F)
   sequences <- lapply(sequences, function(seq) {paste0(seq, collapse = "")})
   return(sequences)
 }
@@ -15,24 +15,27 @@ parse_dates <- function(date_file) {
   return(dates)
 }
 
-# Function to recursively replace strings in all nodes and attributes
 replace_strings_in_node <- function(node, old_prefix, new_prefix) {
-  # Replace in node text
-  if (!is.null(xmlValue(node)) && grepl(old_prefix, xmlValue(node))) {
-    xmlValue(node) <- gsub(old_prefix, new_prefix, xmlValue(node))
+  # Step 1: Replace in node text without affecting recursion
+  if (!is.null(xmlValue(node))) {
+    value <- xmlValue(node)
+    if (grepl(old_prefix, value, fixed = TRUE)) {
+      xmlValue(node) <- gsub(old_prefix, new_prefix, value, fixed = TRUE)
+    }
   }
   
-  # Replace in node attributes
+  # Step 2: Replace in node attributes
   attrs <- xmlAttrs(node)
   if (length(attrs) > 0) {
     for (attr_name in names(attrs)) {
-      if (grepl(old_prefix, attrs[[attr_name]])) {
-        xmlAttrs(node)[[attr_name]] <- gsub(old_prefix, new_prefix, attrs[[attr_name]])
+      attr_value <- attrs[[attr_name]]
+      if (grepl(old_prefix, attr_value, fixed = TRUE)) {
+        xmlAttrs(node)[[attr_name]] <- gsub(old_prefix, new_prefix, attr_value, fixed = TRUE)
       }
     }
   }
   
-  # Recursively apply to child nodes
+  # Step 3: Recursively apply to child nodes, one at a time
   children <- xmlChildren(node)
   if (length(children) > 0) {
     for (child in children) {
@@ -53,10 +56,12 @@ update_xml <- function(xml_file, sequences, dates, old_prefix, new_prefix ,outpu
   sequence_node<- sequence_nodes[1][[1]]
   taxon <- xmlGetAttr(sequence_node, "taxon")
   seq <- xmlGetAttr(sequence_node, "value")
+  ID <- xmlGetAttr(sequence_node, "id")
   seq_node<-as.character(saveXML(sequence_nodes[[1]]))
   parent_node<-getNodeSet(xml, "//data")[[1]]
   for (i in 1:length(sequences)){
     replace_node<-gsub(taxon,names(sequences)[i],seq_node)
+    replace_node<-gsub(ID,names(sequences)[i],replace_node)
     replace_node<-gsub(seq,sequences[i],replace_node,fixed = T)
     replace_node<-substr(replace_node, 2, nchar(replace_node) - 2)
     newnode<-newXMLNode(replace_node)
@@ -65,9 +70,17 @@ update_xml <- function(xml_file, sequences, dates, old_prefix, new_prefix ,outpu
   for (sequence_node in sequence_nodes) {
     removeNodes(sequence_nodes)
   }
+  
+  
     
   # Add invariant sites information
   if (invariant){ # Note: these proportions are specific to the nucleotide frequencies in H37Rv
+    ## Check if invariant line is present
+    if (length(getNodeSet(xml, "//data"))>1){
+    parent_node<-getNodeSet(xml, "//data")[[2]]
+    removeNodes(parent_node)
+    }
+    ## make new invariant line
     parent_node<-getNodeSet(xml, "//data")[[1]]
     xmlAttrs(parent_node)["id"]<-paste0(new_prefix,"original")
   
@@ -87,7 +100,6 @@ update_xml <- function(xml_file, sequences, dates, old_prefix, new_prefix ,outpu
     addSibling(parent_node, new_node)
   }
   
-  
   # Update taxa dates in XML
   trait_nodes <- getNodeSet(root, "//trait")
   trait_node<-trait_nodes[1][[1]]
@@ -98,7 +110,7 @@ update_xml <- function(xml_file, sequences, dates, old_prefix, new_prefix ,outpu
   newDateString<-substr(newDateString, 1, nchar(newDateString) - 1)
   xmlAttrs(trait_node)["value"] <- newDateString
   
-  # Replace old prefix with new prefix
+  # Replace old prefix with base name of fasta file
   replace_strings_in_node(root, old_prefix, new_prefix)
   
   # Save updated XML to output file
@@ -129,3 +141,4 @@ main <- function() {
 if (!interactive()) {
   main()
 }
+
