@@ -110,6 +110,9 @@ update_xml <- function(xml_file, sequences, dates, old_prefix, new_prefix ,outpu
   newDateString<-substr(newDateString, 1, nchar(newDateString) - 1)
   xmlAttrs(trait_node)["value"] <- newDateString
   
+  ## clean up dates if with text
+  try(xmlValue(trait_node[1]$text)<-"",silent = T)
+  
   # Replace old prefix with base name of fasta file
   replace_strings_in_node(root, old_prefix, new_prefix)
   
